@@ -16,3 +16,5 @@ Weird things happen if you refresh, a third person connects, you connect in prog
 The game state fully communicates the state of the board, but only new moves are reflected in the JS.
 
 ## Screenshots
+
+![https://github.com/getloh/tictactoe/blob/main/public/screenshot.png?raw=true](https://github.com/getloh/tictactoe/blob/main/public/screenshot.png?raw=true)
