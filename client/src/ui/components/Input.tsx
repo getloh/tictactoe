@@ -9,7 +9,6 @@ export interface InputProps{
 export default function Input(props:any){
     const [entry, setEntry] = useState("");
 
-
     return (
 
         <input 
