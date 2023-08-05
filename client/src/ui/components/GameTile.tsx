@@ -1,8 +1,6 @@
 // import { Box, Typography } from "@mui/material";
 import React from 'react'
 import { TileFill } from '../../game/enums';
-import { Paragraph } from './Paragraph';
-
 
 export interface GameTileProps {
     onClick?: () => void;
@@ -35,7 +33,6 @@ export default function GameTile(props: GameTileProps): JSX.Element {
             `} 
             onClick={props.onClick}
             >
-                {/* <p>{props.id}</p> */}
                 {props.fill == TileFill.o &&
                     <p className={`text-sky-950 font-bold text-6xl pointer-events-none ${props.win && "animate-pulse"}`}>O</p>
                 }
@@ -44,9 +41,7 @@ export default function GameTile(props: GameTileProps): JSX.Element {
                 }
             </div>
         </>
-        // <Box onClick={() => {console.log("box click!")}} border="1px solid blue" >
-        //     <Typography>Test </Typography>
-        // </Box>
+
     )
 
 }
