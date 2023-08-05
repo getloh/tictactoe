@@ -1,13 +1,17 @@
 const express = require('express')
 const app = express()
 const port = 3000
-
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
+// const io = new Server(server);
 
-app.use(express.static('public'));
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:9500"
+    }
+});
+// app.use(express.static('public'));
 
 // app.get('/', (req, res) => {
 //   res.sendFile(__dirname + '/public/index.html');
@@ -18,26 +22,32 @@ app.use(express.static('public'));
 // })
 server.listen(3000);
 
+let usersConnected = 0;
 let playerNames = [];
 let p1Moves = [];
 let p2Moves = [];
 let p1turn = true;
 let status = "waiting";     //"waiting" | "playing" | "end"
+let p1Wins = 0;
+let p2Wins = 0;
 
 io.on('connection', (socket) =>
 {
-    console.log('User connected');
+    usersConnected++;
+    console.log("User Connected - " + usersConnected + ' Users online');
     sendGameState();
 
     socket.on('setName', (payload) =>
     {
         // uid + name
-        console.log("setName =" + payload)
+        console.log("setName: " + payload)
         if (playerNames.length <= 2)
         {
             playerNames.push(payload);
-            if (playerNames.length == 2){
+            if (playerNames.length == 2)
+            {
                 status = "playing";
+                p1turn = Math.random() > 0.5
             }
             sendGameState();
         }
@@ -53,13 +63,14 @@ io.on('connection', (socket) =>
 
         if (status == "playing")
         {
-
             console.log(payload)
+            // Check if the box is already occupied
             if (p1Moves.includes(payload.box) || p2Moves.includes(payload.box))
             {
                 console.log("this box has is already occupied");
                 sendGameError("Space already occupied!");
             }
+            // if it's not, update the box
             else
             {
                 if (p1turn)
@@ -71,71 +82,84 @@ io.on('connection', (socket) =>
                     p2Moves.push(payload.box)
                 }
                 sendGameUpdate(payload.box);
-                p1turn = !p1turn;
+                if (!gameUpdate())
+                {
+                    p1turn = !p1turn;
+                }
             }
-
-            gameUpdate();
             sendGameState();
         }
 
     });
 
-    socket.on('restart', () => {
+    socket.on('restart', () =>
+    {
         restartGame();
+    })
+
+    socket.on('rematch', () =>
+    {
+        rematchGame();
     })
 
     socket.on('disconnect', () =>
     {
-        console.log('User disconnected');
+        usersConnected--;
+        console.log('User disconnected - ' + usersConnected + " Users still online");
+        if (usersConnected == 0)
+        {
+            restartGame();
+        }
     });
 
 });
 
 function sendGameState()
 {
-    io.emit('gameState', { playerNames, p1Moves, p2Moves, p1turn, status })
+    io.emit('gameState', { playerNames, p1Moves, p2Moves, p1turn, status, usersConnected, p1Wins, p2Wins })
 }
 
 function gameUpdate()
 {
+    let winnerFound = false;
     //Determines game complete
     function smushAndCheck(arr)
     {
         //Takes an array of numbers, and checks for winning state
-        let str = arr.sort().join('');
+        // let str = arr.sort().join('');
         // Lord forgive me for this bruteforce
 
-        if (str.includes('1') && str.includes('2') && str.includes('3'))
+        if (arr.includes(1) && arr.includes(2) && arr.includes(3))
         {
-            return true;
+            return "123";
         }
-        if (str.includes('4') && str.includes('5') && str.includes('6'))
+        if (arr.includes(4) && arr.includes(5) && arr.includes(6))
         {
-            return true;
+            return "456";
         }
-        if (str.includes('7') && str.includes('8') && str.includes('9'))
+        if (arr.includes(7) && arr.includes(8) && arr.includes(9))
         {
-            return true;
+            return "789";
         }
-        if (str.includes('1') && str.includes('5') && str.includes('9'))
+        if (arr.includes(1) && arr.includes(5) && arr.includes(9))
         {
-            return true;
+            return "159";
         }
-        if (str.includes('3') && str.includes('5') && str.includes('7'))
+        if (arr.includes(3) && arr.includes(5) && arr.includes(7))
         {
-            return true;
+            return "357";
         }
-        if (str.includes('1') && str.includes('4') && str.includes('7'))
+        if (arr.includes(1) && arr.includes(4) && arr.includes(7))
         {
-            return true;
+            return "147";
         }
-        if (str.includes('2') && str.includes('5') && str.includes('8'))
+        if (arr.includes(2) && arr.includes(5) && arr.includes(8))
         {
-            return true;
+            return "258";
         }
-        if (str.includes('3') && str.includes('6') && str.includes('9'))
+        if (arr.includes(3) && arr.includes(6) && arr.includes(9))
         {
-            return true;
+            return "369";
         }
 
         return false;
@@ -144,19 +168,27 @@ function gameUpdate()
     if (smushAndCheck(p1Moves))
     {
         console.log("p1 wins")
-        sendGameOver(playerNames[0] + " Wins!")
+        winnerFound = true;
+        p1Wins++;
+        status = "end";
+        sendGameOver({ winState: smushAndCheck(p1Moves), message: playerNames[0] + " Wins!" });
+
     }
     else if (smushAndCheck(p2Moves))
     {
-        console.log("p2 wins")
-        sendGameOver(playerNames[1] + " Wins!")
-
+        winnerFound = true
+        console.log("p2 wins");
+        p2Wins++;
+        status = "end";
+        sendGameOver({ winState: smushAndCheck(p2Moves), message: playerNames[1] + " Wins!" });
     }
     else if (p1Moves.length + p2Moves.length >= 9)
     {
         // All boxes are full
-        sendGameOver("Nobody wins :(")
+        status = "end";
+        sendGameOver({ winState: "0", message: "Everyone Loses!" })
     }
+    return winnerFound;
 }
 
 function sendGameUpdate(boxNumber)
@@ -172,7 +204,6 @@ function sendGameError(str)
 function sendGameOver(str)
 {
     io.emit('gameOver', str)
-    status = "end";
 }
 
 function restartGame()
@@ -181,6 +212,22 @@ function restartGame()
     p1Moves = [];
     p2Moves = [];
     p1turn = true;
-    status = "waiting"; 
+    status = "waiting";
     playerNames = [];
+    p1Wins = 0;
+    p2Wins = 0;
+
+    io.emit('reset', true)
+}
+
+function rematchGame()
+{
+    console.log("Run it back!")
+    p1Moves = [];
+    p2Moves = [];
+    status = "playing";
+    p1turn = !p1turn;
+
+    sendGameOver({ winState: null, message: null, winner: null })
+    sendGameState()
 }

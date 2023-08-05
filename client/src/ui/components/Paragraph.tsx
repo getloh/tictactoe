@@ -1,7 +1,7 @@
 import React from "react"
 
 export interface ParagraphProps{
-    children?: string | string[];
+    children?: string | string[] | number;
     className?: string;
 }
 
@@ -9,7 +9,7 @@ export function Paragraph (props: ParagraphProps) {
 
     return (
 
-        <p className={`text-base text-white ${props.className}`}>
+        <p className={`${props.className} text-white `}>
             {props.children}
         </p>
     )

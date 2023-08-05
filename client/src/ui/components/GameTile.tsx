@@ -13,24 +13,34 @@ export interface GameTileProps {
 
 export default function GameTile(props: GameTileProps): JSX.Element {
 
+    function getBgColor(){
+
+        switch(props.fill){
+            case TileFill.o:
+                return " bg-sky-200"
+            case TileFill.x :
+                return " bg-rose-200"
+            default: return "bg-white"
+        }
+    }
 
     return (
         <>
             <div 
-            className={`bg-white rounded-lg h-32 aspect-square 
-            transition-all  flex justify-center items-center
-            ${props.win && "saturate-200 border-8 border-zinc-900" } 
+            className={`rounded-lg h-24 sm:h-32 md:h-32 aspect-square 
+            transition-all flex justify-center items-center 
+            ${props.win && "saturate-200 border-8 border-yellow-700" } 
             ${!props.fill && "active:brightness-50 hover:brightness-75 "}
-            ${props.fill == TileFill.o && "bg-sky-200 "}
-            ${props.fill == TileFill.x && "bg-rose-200 "}
+            ${getBgColor()}
             `} 
             onClick={props.onClick}
             >
+                {/* <p>{props.id}</p> */}
                 {props.fill == TileFill.o &&
-                    <Paragraph className="text-sky-950 font-bold text-6xl pointer-events-none">O</Paragraph>
+                    <p className={`text-sky-950 font-bold text-6xl pointer-events-none ${props.win && "animate-pulse"}`}>O</p>
                 }
                 {props.fill == TileFill.x &&
-                    <Paragraph className="text-rose-950 font-bold text-6xl pointer-events-none">X</Paragraph>
+                    <p className={`text-rose-950 font-bold text-6xl pointer-events-none ${props.win && "animate-pulse"}`}>X</p>
                 }
             </div>
         </>
