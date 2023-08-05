@@ -1,14 +1,13 @@
 import React, { useState } from "react"
 
 export interface InputProps{
-    onChange?: Function
+    onChange: Function
     className?: string;
     value?: string;
 }
 
-export default function Input(props:any){
+export default function Input(props:InputProps){
     const [entry, setEntry] = useState("");
-
 
     return (
 

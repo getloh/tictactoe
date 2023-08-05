@@ -11,9 +11,7 @@ export interface PlayerCardProps {
 
 export default function PlayerCard(props: PlayerCardProps) {
 
-
     return (
-
         <div
             className={`flex py-8 px-4 lg:w-1/3 w-1/2 rounded-lg justify-between items-center 
             ${props.player && "border-4 "}
