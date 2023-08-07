@@ -1,6 +1,6 @@
-# Express / Socket.io / React / Tailwind Tic-tac-toe
+# Node / Socket.io / React / Tailwind Tic-tac-toe
 
-This is a multiplayer Tic-tac-toe game - Backend made using Express and socket.io, frontend in React with Tailwind packaged with webpack
+This is a multiplayer Tic-tac-toe game - Backend made using Node and socket.io, frontend in React with Tailwind packaged with webpack
 
 ## Installation and use
 
